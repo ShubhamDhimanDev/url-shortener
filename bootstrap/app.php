@@ -11,7 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Exclude payment webhook routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/*',
+        ]);
+
+        // Named middleware aliases
+        $middleware->alias([
+            'link.quota' => \App\Http\Middleware\CheckLinkQuota::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
