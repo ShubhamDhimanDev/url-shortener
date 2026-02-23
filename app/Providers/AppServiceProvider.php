@@ -4,6 +4,12 @@ namespace App\Providers;
 
 use App\Contracts\AnalyticsDriverInterface;
 use App\Contracts\PaymentGatewayInterface;
+use App\Models\Link;
+use App\Models\Subscription;
+use App\Models\User;
+use App\Observers\LinkObserver;
+use App\Observers\SubscriptionObserver;
+use App\Observers\UserObserver;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\View;
@@ -33,6 +39,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Observers ────────────────────────────────────────────────────────
+        // Registered here so they apply for every request / queue worker.
+        Link::observe(LinkObserver::class);
+        User::observe(UserObserver::class);
+        Subscription::observe(SubscriptionObserver::class);
+
+        // ── View Composers ───────────────────────────────────────────────────
         // Share the current subscription with all views for feature-gating.
         View::composer('*', function ($view) {
             if (auth()->check()) {

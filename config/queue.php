@@ -126,4 +126,28 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Named Queue Workers
+    |--------------------------------------------------------------------------
+    |
+    | These are the named queues used by the application. Start dedicated
+    | workers for each queue to control throughput and resource allocation:
+    |
+    |   php artisan queue:work --queue=analytics   (high-volume click recording)
+    |   php artisan queue:work --queue=notifications (email & DB notifications)
+    |   php artisan queue:work --queue=webhooks    (payment gateway webhooks)
+    |   php artisan queue:work --queue=default     (general background jobs)
+    |
+    | In production, use Supervisor to keep these workers running.
+    |
+    */
+
+    'queues' => [
+        'default'       => 'default',       // general background jobs
+        'notifications' => 'notifications', // email / database notification jobs
+        'analytics'     => 'analytics',     // high-volume link-click recording
+        'webhooks'      => 'webhooks',      // payment gateway webhook processing
+    ],
+
 ];
