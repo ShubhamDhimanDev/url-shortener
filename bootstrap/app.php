@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'link.quota' => \App\Http\Middleware\CheckLinkQuota::class,
             'feature'    => \App\Http\Middleware\CheckSubscriptionFeature::class,
         ]);
+
+        // Inject impersonation state (banner) for every web request so the
+        // amber banner is visible even when an admin is browsing regular app pages.
+        $middleware->appendToGroup('web', \App\Http\Middleware\HandleImpersonation::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
