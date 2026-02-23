@@ -6,15 +6,10 @@ use App\Actions\Analytics\RecordClickAction;
 use App\Models\Link;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 
 class RecordLinkClickJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
-
-    /** Queue for high-volume click analytics processing */
-    public string $queue = 'analytics';
+    use Queueable;
 
     /** Retry up to 3 times before discarding */
     public int $tries = 3;
@@ -26,7 +21,9 @@ class RecordLinkClickJob implements ShouldQueue
         public readonly ?string $referrerUrl,
         public readonly array   $utmParams        = [],
         public readonly ?string $honeypotHeader   = null,
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     public function handle(RecordClickAction $action): void
     {

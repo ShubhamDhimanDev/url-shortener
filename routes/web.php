@@ -94,24 +94,6 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Short-Link Redirect (public)
-|--------------------------------------------------------------------------
-|
-| These two routes MUST be declared last (or have lower priority) to avoid
-| shadowing named application routes. They catch any /{shortCode} requests
-| that haven't been handled by a more specific route above.
-|
-*/
-Route::get('/{shortCode}', [RedirectController::class, 'redirect'])
-    ->name('redirect')
-    ->where('shortCode', '[A-Za-z0-9_-]+');
-
-Route::post('/{shortCode}/unlock', [RedirectController::class, 'unlock'])
-    ->name('redirect.unlock')
-    ->where('shortCode', '[A-Za-z0-9_-]+');
-
-/*
-|--------------------------------------------------------------------------
 | Payment Webhooks
 |--------------------------------------------------------------------------
 |
@@ -286,3 +268,20 @@ Route::prefix('super-admin')
         Route::get('/analytics', [SuperAdminAnalyticsController::class, 'index'])->name('analytics.index');
     });
 
+/*
+|--------------------------------------------------------------------------
+| Short-Link Redirect (public)
+|--------------------------------------------------------------------------
+|
+| These two routes MUST be declared last (or have lower priority) to avoid
+| shadowing named application routes. They catch any /{shortCode} requests
+| that haven't been handled by a more specific route above.
+|
+*/
+Route::get('/{shortCode}', [RedirectController::class, 'redirect'])
+    ->name('redirect')
+    ->where('shortCode', '[A-Za-z0-9_-]+');
+
+Route::post('/{shortCode}/unlock', [RedirectController::class, 'unlock'])
+    ->name('redirect.unlock')
+    ->where('shortCode', '[A-Za-z0-9_-]+');

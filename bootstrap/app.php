@@ -25,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'link.quota'  => \App\Http\Middleware\CheckLinkQuota::class,
             'feature'     => \App\Http\Middleware\CheckSubscriptionFeature::class,
             'checkActive' => \App\Http\Middleware\CheckUserIsActive::class,
+            'role' => Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
         // Inject impersonation state (banner) for every web request so the
