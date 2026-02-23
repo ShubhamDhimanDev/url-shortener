@@ -4,11 +4,11 @@ namespace App\Actions\Analytics;
 
 use App\Models\Link;
 use App\Models\LinkClick;
+use App\Services\Analytics\AnalyticsService;
 use App\Services\Analytics\BotDetectionService;
 use App\Services\Analytics\GeoLocationService;
 use App\Services\SpamDetectionService;
 use Illuminate\Support\Facades\DB;
-use Jenssegers\Agent\Agent;
 
 class RecordClickAction
 {
@@ -16,6 +16,7 @@ class RecordClickAction
         private readonly BotDetectionService  $botDetector,
         private readonly GeoLocationService   $geo,
         private readonly SpamDetectionService $spam,
+        private readonly AnalyticsService     $analytics,
     ) {}
 
     /**
@@ -103,6 +104,16 @@ class RecordClickAction
         if (! $isBot) {
             $this->spam->inspect($link, $ipAddress);
         }
+
+        // ── 10. Bust analytics cache so the next summary fetch is fresh ──────
+        $this->analytics->clearLinkCache($link);
+
+        if ($link->team_id) {
+            $this->analytics->clearTeamCache($link->team_id);
+        }
+
+        $this->analytics->clearUserCache($link->user_id);
+        $this->analytics->clearPlatformCache();
     }
 
     // ─── UA Parsing ──────────────────────────────────────────────────────────

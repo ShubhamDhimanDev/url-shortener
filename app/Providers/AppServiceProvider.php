@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\AnalyticsDriverInterface;
 use App\Contracts\PaymentGatewayInterface;
+use App\Services\Analytics\AnalyticsService;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
             PaymentGatewayInterface::class,
             fn () => app(PaymentGatewayManager::class)->driver()
         );
+
+        // Bind the analytics driver interface to the concrete MySQL implementation.
+        $this->app->singleton(AnalyticsService::class);
+        $this->app->alias(AnalyticsService::class, AnalyticsDriverInterface::class);
     }
 
     /**
