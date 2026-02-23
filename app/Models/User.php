@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasSubscription;
 use App\Traits\HasUlid;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasRoles, HasUlid, SoftDeletes;
+    use HasFactory, Notifiable, HasRoles, HasUlid, HasSubscription, SoftDeletes;
 
     protected $fillable = [
         'ulid',
@@ -70,18 +70,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Domain::class);
     }
 
-    public function subscriptions(): MorphMany
-    {
-        return $this->morphMany(Subscription::class, 'subscribable');
-    }
-
-    public function subscription(): ?Subscription
-    {
-        return $this->subscriptions()
-            ->whereIn('status', ['active', 'trialing'])
-            ->latest()
-            ->first();
-    }
+    // subscriptions(), subscription(), activePlan(), onTrial(), subscribed(),
+    // feature(), features() — provided by HasSubscription trait.
 
     public function invoices(): MorphMany
     {
@@ -120,26 +110,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isImpersonating(): bool
     {
         return session()->has('impersonator_id');
-    }
-
-    public function activePlan(): ?Plan
-    {
-        return $this->subscription()?->plan;
-    }
-
-    public function onTrial(): bool
-    {
-        $sub = $this->subscription();
-        return $sub && $sub->status === 'trialing' && $sub->trial_ends_at?->isFuture();
-    }
-
-    public function subscribed(): bool
-    {
-        return $this->subscription() !== null;
-    }
-
-    public function feature(string $key): mixed
-    {
-        return $this->activePlan()?->features()->where('feature_key', $key)->value('feature_value');
     }
 }

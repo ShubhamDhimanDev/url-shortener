@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasSubscription;
 use App\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Team extends Model
 {
-    use HasFactory, HasUlid, SoftDeletes;
+    use HasFactory, HasUlid, HasSubscription, SoftDeletes;
 
     protected $fillable = [
         'ulid',
@@ -56,18 +57,8 @@ class Team extends Model
         return $this->hasMany(Domain::class);
     }
 
-    public function subscriptions(): MorphMany
-    {
-        return $this->morphMany(Subscription::class, 'subscribable');
-    }
-
-    public function subscription(): ?Subscription
-    {
-        return $this->subscriptions()
-            ->whereIn('status', ['active', 'trialing'])
-            ->latest()
-            ->first();
-    }
+    // subscriptions(), subscription(), activePlan(), onTrial(), subscribed(),
+    // feature(), features() — provided by HasSubscription trait.
 
     public function invoices(): MorphMany
     {
@@ -98,25 +89,5 @@ class Team extends Model
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    public function activePlan(): ?Plan
-    {
-        return $this->subscription()?->plan;
-    }
-
-    public function onTrial(): bool
-    {
-        $sub = $this->subscription();
-        return $sub && $sub->status === 'trialing' && $sub->trial_ends_at?->isFuture();
-    }
-
-    public function subscribed(): bool
-    {
-        return $this->subscription() !== null;
-    }
-
-    public function feature(string $key): mixed
-    {
-        return $this->activePlan()?->features()->where('feature_key', $key)->value('feature_value');
-    }
+    // activePlan(), onTrial(), subscribed(), feature(), features() — see HasSubscription.
 }

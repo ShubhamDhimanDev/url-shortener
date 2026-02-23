@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Named middleware aliases
         $middleware->alias([
             'link.quota' => \App\Http\Middleware\CheckLinkQuota::class,
+            'feature'    => \App\Http\Middleware\CheckSubscriptionFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
