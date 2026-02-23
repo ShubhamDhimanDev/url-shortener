@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Redirect authenticated users away from guest-only pages (login, register, etc.)
         // to the main app dashboard instead of Laravel's default /home.
-        $middleware->redirectUsersTo(route('app.dashboard'));
+        $middleware->redirectUsersTo('/');
 
         // Named middleware aliases
         $middleware->alias([

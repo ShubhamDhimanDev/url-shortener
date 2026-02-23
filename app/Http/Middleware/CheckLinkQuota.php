@@ -38,7 +38,7 @@ class CheckLinkQuota
         }
 
         $entity       = $team ?? $user;
-        $subscription = method_exists($entity, 'subscription') ? $entity->subscription() : null;
+        $subscription = method_exists($entity, 'activeSubscription') ? $entity->activeSubscription() : null;
 
         $limit = $subscription?->plan
             ?->features()

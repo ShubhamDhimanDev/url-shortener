@@ -26,7 +26,7 @@ class FeatureService
 
     public function __construct(private readonly User|Team $entity)
     {
-        $this->subscription = $entity->subscription();
+        $this->subscription = $entity->activeSubscription();
         $this->plan = $this->subscription?->plan;
     }
 

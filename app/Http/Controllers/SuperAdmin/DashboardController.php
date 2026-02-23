@@ -82,7 +82,6 @@ class DashboardController extends Controller
             ->whereMonth('paid_at', $today->month)
             ->whereYear('paid_at', $today->year)
             ->sum('total');
-
         return view('super-admin.dashboard', compact(
             'totalUsers', 'activeUsers', 'totalLinks', 'clicksToday',
             'mrr', 'signupChart', 'clicksChart', 'recentUsers',

@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         // Share the current subscription with all views for feature-gating.
         View::composer('*', function ($view) {
             if (auth()->check()) {
-                $view->with('currentSubscription', auth()->user()->subscription ?? null);
+                $view->with('currentSubscription', auth()->user()->activeSubscription());
             }
         });
     }

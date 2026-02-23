@@ -28,10 +28,9 @@ class AnalyticsService implements AnalyticsDriverInterface
      */
     public function getSummary(Link $link, Carbon $from, Carbon $to): array
     {
-        $key = "summary:link:{$link->id}:{$from->timestamp}:{$to->timestamp}";
+        $key = "analytics:link:{$link->id}:{$from->timestamp}:{$to->timestamp}";
 
-        return Cache::tags(['analytics', "link:{$link->id}"])
-            ->remember($key, self::CACHE_TTL, fn () => $this->buildLinkSummary($link->id, $from, $to));
+        return Cache::remember($key, self::CACHE_TTL, fn () => $this->buildLinkSummary($link->id, $from, $to));
     }
 
     /**
@@ -39,10 +38,9 @@ class AnalyticsService implements AnalyticsDriverInterface
      */
     public function getTeamSummary(Team $team, Carbon $from, Carbon $to): array
     {
-        $key = "summary:team:{$team->id}:{$from->timestamp}:{$to->timestamp}";
+        $key = "analytics:team:{$team->id}:{$from->timestamp}:{$to->timestamp}";
 
-        return Cache::tags(['analytics', "team:{$team->id}"])
-            ->remember($key, self::CACHE_TTL, fn () => $this->buildTeamSummary($team->id, $from, $to));
+        return Cache::remember($key, self::CACHE_TTL, fn () => $this->buildTeamSummary($team->id, $from, $to));
     }
 
     /**
@@ -50,10 +48,9 @@ class AnalyticsService implements AnalyticsDriverInterface
      */
     public function getUserSummary(User $user, Carbon $from, Carbon $to): array
     {
-        $key = "summary:user:{$user->id}:{$from->timestamp}:{$to->timestamp}";
+        $key = "analytics:user:{$user->id}:{$from->timestamp}:{$to->timestamp}";
 
-        return Cache::tags(['analytics', "user:{$user->id}"])
-            ->remember($key, self::CACHE_TTL, fn () => $this->buildUserSummary($user->id, $from, $to));
+        return Cache::remember($key, self::CACHE_TTL, fn () => $this->buildUserSummary($user->id, $from, $to));
     }
 
     /**
@@ -61,10 +58,9 @@ class AnalyticsService implements AnalyticsDriverInterface
      */
     public function getPlatformSummary(Carbon $from, Carbon $to): array
     {
-        $key = "summary:platform:{$from->timestamp}:{$to->timestamp}";
+        $key = "analytics:platform:{$from->timestamp}:{$to->timestamp}";
 
-        return Cache::tags(['analytics', 'platform'])
-            ->remember($key, self::CACHE_TTL, fn () => $this->buildPlatformSummary($from, $to));
+        return Cache::remember($key, self::CACHE_TTL, fn () => $this->buildPlatformSummary($from, $to));
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -73,25 +69,26 @@ class AnalyticsService implements AnalyticsDriverInterface
 
     public function clearLinkCache(int|Link $link): void
     {
-        $id = $link instanceof Link ? $link->id : $link;
-        Cache::tags(["link:{$id}"])->flush();
+        // Tag-based flushing is unavailable with the file cache driver.
+        // Entries expire naturally via TTL (CACHE_TTL seconds).
     }
 
     public function clearTeamCache(int|Team $team): void
     {
-        $id = $team instanceof Team ? $team->id : $team;
-        Cache::tags(["team:{$id}"])->flush();
+        // Tag-based flushing is unavailable with the file cache driver.
+        // Entries expire naturally via TTL (CACHE_TTL seconds).
     }
 
     public function clearUserCache(int|User $user): void
     {
-        $id = $user instanceof User ? $user->id : $user;
-        Cache::tags(["user:{$id}"])->flush();
+        // Tag-based flushing is unavailable with the file cache driver.
+        // Entries expire naturally via TTL (CACHE_TTL seconds).
     }
 
     public function clearPlatformCache(): void
     {
-        Cache::tags(['platform'])->flush();
+        // Tag-based flushing is unavailable with the file cache driver.
+        // Entries expire naturally via TTL (CACHE_TTL seconds).
     }
 
     // ──────────────────────────────────────────────────────────────────────────

@@ -111,8 +111,8 @@ class CreateLinkAction
         // Determine the plan's monthly link limit
         $entity = $team ?? $user;
 
-        $subscription = method_exists($entity, 'subscription')
-            ? $entity->subscription()
+        $subscription = method_exists($entity, 'activeSubscription')
+            ? $entity->activeSubscription()
             : null;
 
         $limit = $subscription?->plan

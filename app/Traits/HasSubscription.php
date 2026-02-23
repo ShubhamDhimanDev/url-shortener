@@ -6,6 +6,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\FeatureService;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
  * Subscription helper methods shared between User and Team models.
@@ -25,17 +26,28 @@ trait HasSubscription
         return $this->morphMany(Subscription::class, 'subscribable');
     }
 
+    /**
+     * Eloquent relationship: the single active/trialing subscription.
+     * Returning a MorphOne satisfies Eloquent's magic __get so that
+     * both `$model->subscription` (property) and eager-loading work
+     * correctly without the "must return a relationship instance" error.
+     */
+    public function subscription(): MorphOne
+    {
+        return $this->morphOne(Subscription::class, 'subscribable')
+            ->whereIn('status', ['active', 'trialing'])
+            ->latest();
+    }
+
     // ─── Computed helpers ─────────────────────────────────────────────────
 
     /**
-     * Return the currently active or trialing subscription, or null.
+     * Return the currently active or trialing Subscription model, or null.
+     * Use this for direct access to the model in PHP code.
      */
-    public function subscription(): ?Subscription
+    public function activeSubscription(): ?Subscription
     {
-        return $this->subscriptions()
-            ->whereIn('status', ['active', 'trialing'])
-            ->latest()
-            ->first();
+        return $this->subscription;
     }
 
     /**
@@ -43,7 +55,7 @@ trait HasSubscription
      */
     public function activePlan(): ?Plan
     {
-        return $this->subscription()?->plan;
+        return $this->activeSubscription()?->plan;
     }
 
     /**
@@ -51,7 +63,7 @@ trait HasSubscription
      */
     public function onTrial(): bool
     {
-        $sub = $this->subscription();
+        $sub = $this->activeSubscription();
 
         return $sub !== null
             && $sub->status === 'trialing'
@@ -63,7 +75,7 @@ trait HasSubscription
      */
     public function subscribed(): bool
     {
-        return $this->subscription() !== null;
+        return $this->activeSubscription() !== null;
     }
 
     /**
