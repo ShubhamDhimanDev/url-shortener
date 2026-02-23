@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\App\AnalyticsController as AppAnalyticsController;
+use App\Http\Controllers\App\BillingController;
+use App\Http\Controllers\App\DashboardController as AppDashboardController;
+use App\Http\Controllers\App\DomainController;
+use App\Http\Controllers\App\LinkController;
+use App\Http\Controllers\App\ProfileController;
+use App\Http\Controllers\App\QrCodeController;
+use App\Http\Controllers\App\TeamController as AppTeamController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SuperAdmin\AnalyticsController as SuperAdminAnalyticsController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
@@ -47,6 +55,88 @@ Route::post('/{shortCode}/unlock', [RedirectController::class, 'unlock'])
 */
 Route::post('/webhooks/{gateway}', [WebhookController::class, 'handle'])
     ->name('webhooks.handle');
+
+/*
+|--------------------------------------------------------------------------
+| User / Team App Panel
+|--------------------------------------------------------------------------
+|
+| All routes prefixed /app. Requires authenticated + verified users.
+| HandleImpersonation middleware injects the impersonation banner if active.
+|
+*/
+Route::prefix('app')
+    ->middleware(['auth', 'verified', \App\Http\Middleware\HandleImpersonation::class])
+    ->name('app.')
+    ->group(function () {
+
+        // Dashboard
+        Route::get('/', [AppDashboardController::class, 'index'])->name('dashboard');
+
+        // Links
+        Route::prefix('links')->name('links.')->group(function () {
+            Route::get('/',                  [LinkController::class, 'index'])->name('index');
+            Route::get('/create',            [LinkController::class, 'create'])->name('create');
+            Route::post('/',                 [LinkController::class, 'store'])->name('store');
+            Route::get('/{ulid}',            [LinkController::class, 'show'])->name('show');
+            Route::get('/{ulid}/edit',       [LinkController::class, 'edit'])->name('edit');
+            Route::put('/{ulid}',            [LinkController::class, 'update'])->name('update');
+            Route::delete('/{ulid}',         [LinkController::class, 'destroy'])->name('destroy');
+            Route::patch('/{ulid}/toggle',   [LinkController::class, 'toggle'])->name('toggle');
+        });
+
+        // Analytics
+        Route::prefix('analytics')->name('analytics.')->group(function () {
+            Route::get('/{ulid}', [AppAnalyticsController::class, 'show'])->name('show');
+        });
+
+        // QR Codes
+        Route::prefix('qrcodes')->name('qrcodes.')->group(function () {
+            Route::get('/{ulid}',            [QrCodeController::class, 'show'])->name('show');
+            Route::post('/{ulid}/generate',  [QrCodeController::class, 'generate'])->name('generate');
+            Route::get('/{ulid}/download',   [QrCodeController::class, 'download'])->name('download');
+        });
+
+        // Domains
+        Route::prefix('domains')->name('domains.')->group(function () {
+            Route::get('/',             [DomainController::class, 'index'])->name('index');
+            Route::get('/create',       [DomainController::class, 'create'])->name('create');
+            Route::post('/',            [DomainController::class, 'store'])->name('store');
+            Route::post('/{domain}/verify', [DomainController::class, 'verify'])->name('verify');
+            Route::delete('/{domain}',  [DomainController::class, 'destroy'])->name('destroy');
+        });
+
+        // Teams
+        Route::prefix('teams')->name('teams.')->group(function () {
+            Route::get('/',                          [AppTeamController::class, 'index'])->name('index');
+            Route::get('/create',                    [AppTeamController::class, 'create'])->name('create');
+            Route::post('/',                         [AppTeamController::class, 'store'])->name('store');
+            Route::get('/{ulid}',                    [AppTeamController::class, 'show'])->name('show');
+            Route::get('/{ulid}/settings',           [AppTeamController::class, 'settings'])->name('settings');
+            Route::put('/{ulid}',                    [AppTeamController::class, 'update'])->name('update');
+            Route::post('/{ulid}/invite',            [AppTeamController::class, 'invite'])->name('invite');
+            Route::delete('/{ulid}/members/{id}',   [AppTeamController::class, 'removeMember'])->name('members.remove');
+            Route::delete('/{ulid}/leave',           [AppTeamController::class, 'leave'])->name('leave');
+            Route::post('/switch-context',           [AppTeamController::class, 'switchContext'])->name('switch-context');
+        });
+
+        // Billing
+        Route::prefix('billing')->name('billing.')->group(function () {
+            Route::get('/',                    [BillingController::class, 'index'])->name('index');
+            Route::get('/plans',               [BillingController::class, 'plans'])->name('plans');
+            Route::post('/subscribe',          [BillingController::class, 'subscribe'])->name('subscribe');
+            Route::post('/cancel',             [BillingController::class, 'cancel'])->name('cancel');
+            Route::get('/invoices/{ulid}/download', [BillingController::class, 'downloadInvoice'])->name('invoices.download');
+        });
+
+        // Profile
+        Route::prefix('profile')->name('profile.')->group(function () {
+            Route::get('/',               [ProfileController::class, 'edit'])->name('edit');
+            Route::put('/',               [ProfileController::class, 'update'])->name('update');
+            Route::put('/password',       [ProfileController::class, 'updatePassword'])->name('password');
+            Route::delete('/',            [ProfileController::class, 'destroy'])->name('destroy');
+        });
+    });
 
 /*
 |--------------------------------------------------------------------------
