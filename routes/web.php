@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\App\AnalyticsController as AppAnalyticsController;
 use App\Http\Controllers\App\BillingController;
 use App\Http\Controllers\App\DashboardController as AppDashboardController;
@@ -23,6 +28,68 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authentication – Account Suspended
+|--------------------------------------------------------------------------
+|
+| Named route for the "account deactivated" page shown after CheckUserIsActive
+| logs someone out. No auth guard needed — user is already logged out.
+|
+*/
+Route::get('/account-suspended', fn () => view('auth.suspended'))->name('auth.suspended');
+
+/*
+|--------------------------------------------------------------------------
+| Authentication – Guest Routes
+|--------------------------------------------------------------------------
+|
+| Routes accessible only to unauthenticated visitors.
+| The `guest` middleware redirects already-logged-in users to /app/dashboard.
+|
+*/
+Route::middleware('guest')->group(function () {
+    // Register
+    Route::get('/register',  [RegisterController::class, 'showForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+
+    // Login
+    Route::get('/login',  [LoginController::class, 'showForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+
+    // Forgot password
+    Route::get('/forgot-password',  [ForgotPasswordController::class, 'showForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendLink'])->name('password.email');
+
+    // Reset password
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
+    Route::post('/reset-password',        [ResetPasswordController::class, 'reset'])->name('password.update');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authentication – Authenticated Routes
+|--------------------------------------------------------------------------
+|
+| Logout and email verification routes — require an authenticated session.
+| The `checkActive` middleware is applied globally (bootstrap/app.php) so
+| suspended users are caught before reaching these routes.
+|
+*/
+Route::middleware('auth')->group(function () {
+    // Logout
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Email verification
+    Route::get('/email/verify',               [VerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}',   [VerificationController::class, 'verify'])
+        ->middleware('signed')
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
+        ->middleware('throttle:1,1')
+        ->name('verification.send');
 });
 
 /*
