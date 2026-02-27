@@ -33,7 +33,7 @@ class NewUserRegisteredNotification extends Notification implements ShouldQueue
             ->line("A new user has registered on the platform.")
             ->line("**Name:** {$this->newUser->name}")
             ->line("**Email:** {$this->newUser->email}")
-            ->line("**Registered at:** {$this->newUser->created_at?->toFormattedDateTimeString()}")
+            ->line("**Registered at:** {$this->newUser->created_at?->isoFormat('lll')}")
             ->action('View User', $this->userAdminUrl())
             ->salutation(config('app.name') . ' Platform');
     }

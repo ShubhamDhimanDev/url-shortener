@@ -31,10 +31,10 @@
                     <p class="text-xs font-semibold uppercase tracking-wider text-primary mb-1">{{ $plan->name }}</p>
                     <div class="flex items-end gap-1 mb-2">
                         <span class="text-3xl font-extrabold text-slate-900 dark:text-white">
-                            {{ $plan->price > 0 ? '₹' . number_format($plan->price / 100, 0) : 'Free' }}
+                            {{ $plan->price_monthly > 0 ? '₹' . number_format($plan->price_monthly, 0) : 'Free' }}
                         </span>
-                        @if($plan->price > 0)
-                            <span class="text-slate-400 text-sm mb-1">/{{ $plan->interval ?? 'mo' }}</span>
+                        @if($plan->price_monthly > 0)
+                            <span class="text-slate-400 text-sm mb-1">/mo</span>
                         @endif
                     </div>
                     @if($plan->description)
