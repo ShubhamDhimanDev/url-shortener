@@ -12,6 +12,7 @@ use App\Observers\SubscriptionObserver;
 use App\Observers\UserObserver;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\Payment\PaymentGatewayManager;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -48,8 +49,8 @@ class AppServiceProvider extends ServiceProvider
         // ── View Composers ───────────────────────────────────────────────────
         // Share the current subscription with all views for feature-gating.
         View::composer('*', function ($view) {
-            if (auth()->check()) {
-                $view->with('currentSubscription', auth()->user()->activeSubscription());
+            if (Auth::check()) {
+                $view->with('currentSubscription', Auth::user()->activeSubscription());
             }
         });
     }

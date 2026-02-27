@@ -17,9 +17,10 @@ class LinkCreatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public string $queue = 'notifications';
-
-    public function __construct(public readonly Link $link) {}
+    public function __construct(public readonly Link $link)
+    {
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {

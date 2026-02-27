@@ -28,28 +28,72 @@ class RazorpayDriver implements PaymentGatewayInterface
     }
 
     /**
-     * Create a Razorpay customer for a User or Team.
+     * Create or retrieve a Razorpay customer for a User or Team.
+     *
+     * If the billable entity already has a gateway_customer_id stored on any
+     * of its subscriptions, that customer is fetched from Razorpay and returned
+     * so we never attempt to create a duplicate.
      *
      * @param  User|Team  $billable
      * @return array{id: string, gateway_customer_id: string, raw: array}
      */
     public function createCustomer(User|Team $billable): array
     {
-        $name = $billable instanceof Team ? $billable->name : $billable->name;
+        // Reuse existing Razorpay customer if we already stored one.
+        $existingCustomerId = $billable->subscription?->gateway_customer_id
+            ?? $billable->subscriptions()
+                ->whereNotNull('gateway_customer_id')
+                ->value('gateway_customer_id');
+
+        if ($existingCustomerId) {
+            try {
+                $customer = $this->api->customer->fetch($existingCustomerId);
+
+                return [
+                    'id'                  => $customer->id,
+                    'gateway_customer_id' => $customer->id,
+                    'raw'                 => $customer->toArray(),
+                ];
+            } catch (\Exception $e) {
+                Log::warning('RazorpayDriver: could not fetch existing customer, will create new one.', [
+                    'gateway_customer_id' => $existingCustomerId,
+                    'error'               => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $name  = $billable->name;
         $email = $billable instanceof Team
             ? ($billable->owner?->email ?? '')
             : $billable->email;
 
-        $customer = $this->api->customer->create([
-            'name'    => $name,
-            'email'   => $email,
-            'contact' => '',
-            'notes'   => [
-                'billable_type' => get_class($billable),
-                'billable_id'   => $billable->id,
-                'ulid'          => $billable->ulid,
-            ],
-        ]);
+        try {
+            $customer = $this->api->customer->create([
+                'name'    => $name,
+                'email'   => $email,
+                'contact' => '',
+                'notes'   => [
+                    'billable_type' => get_class($billable),
+                    'billable_id'   => $billable->id,
+                    'ulid'          => $billable->ulid,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // Razorpay throws an error when a customer with this email already exists.
+            // In that case, look up the existing customer by email.
+            if (str_contains($e->getMessage(), 'Customer already exists')) {
+                $results = $this->api->customer->all(['email' => $email]);
+                $items   = $results->items ?? [];
+
+                if (! empty($items)) {
+                    $customer = $items[0];
+                } else {
+                    throw $e;
+                }
+            } else {
+                throw $e;
+            }
+        }
 
         return [
             'id'                  => $customer->id,

@@ -16,9 +16,10 @@ class SubscriptionCancelledNotification extends Notification implements ShouldQu
 {
     use Queueable;
 
-    public string $queue = 'notifications';
-
-    public function __construct(public readonly Subscription $subscription) {}
+    public function __construct(public readonly Subscription $subscription)
+    {
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {

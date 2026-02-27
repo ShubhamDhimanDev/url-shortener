@@ -16,9 +16,10 @@ class WelcomeNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public string $queue = 'notifications';
-
-    public function __construct(public readonly User $user) {}
+    public function __construct(public readonly User $user)
+    {
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {

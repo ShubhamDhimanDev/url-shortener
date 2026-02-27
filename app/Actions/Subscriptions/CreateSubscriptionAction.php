@@ -22,7 +22,7 @@ class CreateSubscriptionAction
      */
     public function execute(User|Team $entity, Plan $plan, array $options = []): Subscription
     {
-        // Create / retrieve gateway customer
+        // Create / retrieve gateway customer (reuses existing customer when upgrading).
         $gatewayData = $this->gateway->createCustomer($entity);
 
         // Cancel any existing active subscription first
@@ -45,7 +45,7 @@ class CreateSubscriptionAction
             'subscribable_id'         => $entity->id,
             'plan_id'                 => $plan->id,
             'gateway'                 => config('payment.default'),
-            'gateway_customer_id'     => $gatewayData['customer_id'] ?? null,
+            'gateway_customer_id'     => $gatewayData['gateway_customer_id'] ?? null,
             'status'                  => $status,
             'trial_ends_at'           => $trialEndsAt,
             'current_period_start'    => Carbon::now(),

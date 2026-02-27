@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Sent to an invitee when they are invited to join a team.
@@ -23,8 +24,6 @@ class TeamInviteNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public string $queue = 'notifications';
-
     /** Pre-generated signed accept URL (injected at listener level). */
     private string $acceptUrl;
 
@@ -34,6 +33,7 @@ class TeamInviteNotification extends Notification implements ShouldQueue
         public readonly string $inviteeEmail,
         ?string                $acceptUrl = null,
     ) {
+        $this->onQueue('notifications');
         $this->acceptUrl = $acceptUrl ?? $this->buildSignedUrl();
     }
 
@@ -70,7 +70,7 @@ class TeamInviteNotification extends Notification implements ShouldQueue
     private function buildSignedUrl(): string
     {
         try {
-            return \URL::temporarySignedRoute(
+            return URL::temporarySignedRoute(
                 'app.teams.invitations.accept',
                 Carbon::now()->addHours(48),
                 [
