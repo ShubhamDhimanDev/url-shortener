@@ -30,6 +30,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/privacy-policy',   fn () => view('privacy-policy'))->name('privacy');
+Route::get('/terms-of-service', fn () => view('terms-of-service'))->name('terms');
+
 /*
 |--------------------------------------------------------------------------
 | Authentication – Account Suspended
