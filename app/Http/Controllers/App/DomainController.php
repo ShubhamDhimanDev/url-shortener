@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\StoreDomainRequest;
+use App\Jobs\ProvisionDomainSslJob;
 use App\Models\Domain;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,8 +66,9 @@ class DomainController extends Controller
     {
         $this->authorize('update', $domain);
 
-        // DNS TXT record check
-        $records = @dns_get_record($domain->domain, DNS_TXT) ?: [];
+        // DNS TXT record check — query _verify subdomain to avoid CNAME conflict
+        $verifyHost = '_verify.' . $domain->domain;
+        $records = @dns_get_record($verifyHost, DNS_TXT) ?: [];
         $verified = collect($records)
             ->contains(fn ($r) => str_contains($r['txt'] ?? '', $domain->verification_token));
 
@@ -74,9 +76,13 @@ class DomainController extends Controller
             $domain->update([
                 'is_verified' => true,
                 'verified_at' => now(),
-                'ssl_status'  => 'active',
+                'ssl_status'  => 'pending',
             ]);
-            return back()->with('success', 'Domain verified successfully!');
+
+            // Automatically provision SSL certificate in the background
+            ProvisionDomainSslJob::dispatch($domain)->onQueue('default');
+
+            return back()->with('success', 'Domain verified! SSL certificate is being provisioned (may take 1–2 minutes).');
         }
 
         return back()->with('error', 'Verification failed. Please check your DNS records and try again.');

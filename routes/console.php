@@ -26,3 +26,6 @@ Schedule::command('subscriptions:trial-reminders')->dailyAt('09:00')->withoutOve
 
 // Sync subscription statuses with the payment gateway — runs nightly at 02:00.
 Schedule::command('subscriptions:sync')->dailyAt('02:00')->withoutOverlapping()->runInBackground();
+
+// Renew SSL certificates for custom domains expiring within 30 days — runs weekly at 03:00.
+Schedule::command('domains:renew-ssl')->weekly()->at('03:00')->withoutOverlapping()->runInBackground();
